@@ -10,23 +10,29 @@ import Foundation
 import MicrosoftMaps
 
 class BingMaps: MSMapView {
-  
+
   var mapElementLayer: MSMapElementLayer;
   @objc var onMapPinClicked: RCTDirectEventBlock?;
   @objc var onMapLoadingStatusChanged: RCTDirectEventBlock?;
-  
+
   @objc var pins: NSArray = [] {
     didSet {
       self.setMapPins(pinData: pins);
     }
   }
-  
+
+  @objc var polylines: Array<Array<Double>> = [] {
+    didSet {
+      self.drawLineOnMap(polylinesData: polylines);
+    }
+  }
+
   @objc var mapLocation:NSDictionary = [:] {
     didSet {
       self.setMapLocation(location: mapLocation);
     }
   }
-  
+
   @objc var mapStyle: NSString = "" {
     didSet {
       var mapStyleSheet: MSMapStyleSheet!;
@@ -36,15 +42,15 @@ class BingMaps: MSMapView {
       }
     }
   }
-  
+
     @objc override var credentialsKey: String {
         didSet{}
     }
-    
+
     @objc override var buildingsVisible: Bool {
         didSet{}
     }
-    
+
     @objc override var businessLandmarksVisible: Bool {
         didSet{}
     }
@@ -52,13 +58,13 @@ class BingMaps: MSMapView {
     @objc override var transitFeaturesVisible: Bool {
         didSet{}
     }
-    
+
     @objc var compassButtonVisible: Bool {
         didSet{
             self.userInterfaceOptions.compassButtonVisible = compassButtonVisible;
         }
     }
-    
+
     @objc var tiltButtonVisible: Bool {
         didSet{
             self.userInterfaceOptions.tiltButtonVisible = tiltButtonVisible;
@@ -88,9 +94,9 @@ class BingMaps: MSMapView {
     self.zoomButtonsVisible=true;
     self.copyrightDisplay="always";
     super.init(frame: frame);
-    
+
     self.layers.add(mapElementLayer);
-    
+
     self.mapElementLayer.addUserDidTapHandler { (cgPoint, msGeopoint, pin) -> Bool in
       self.onPinClicked(geoPoint: msGeopoint, pin: pin)
       return true;
@@ -100,16 +106,16 @@ class BingMaps: MSMapView {
       return true;
     }
   }
-  
+
   required init?(coder: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
+
   func setMapLocation(location: NSDictionary) {
     let mapScene = MSMapScene(location: MSGeopoint(latitude: location.value(forKey: "lat") as! Double, longitude: location.value(forKey: "long") as! Double), zoomLevel: location.value(forKey: "zoom") as! Double);
     self.setScene(mapScene, with: MSMapAnimationKind.linear);
   }
-  
+
   func setMapPins(pinData: NSArray){
     mapElementLayer.elements.clear();
     for pin in pinData {
@@ -118,21 +124,41 @@ class BingMaps: MSMapView {
       mapPin.location = MSGeopoint(latitude: (pin as! NSDictionary).value(forKey: "lat") as! CLLocationDegrees, longitude: (pin as! NSDictionary).value(forKey: "long") as! CLLocationDegrees);
       let svgString: String = (pin as! NSDictionary).value(forKey: "icon") as! String;
       let svgData = Data(svgString.utf8);
-            
+
       let pinIcon: MSMapImage = MSMapImage.init(fromSvg: svgData);
-      
+
       mapPin.image = pinIcon;
       mapElementLayer.elements.add(mapPin);
     }
     return;
   }
-  
+
+  func drawLineOnMap(polylinesData: Array<Array<Double>>) {
+    var geoPoints = [MSGeoposition]()
+
+    for polyline in polylinesData {
+      geoPoints.append(MSGeoposition(latitude: polyline[0], longitude: polyline[1]))
+    }
+    let geopath = MSGeopath(positions: geoPoints)
+
+    let mapPolyline = MSMapPolyline()
+    mapPolyline.path = geopath
+    mapPolyline.strokeColor = UIColor.black
+    mapPolyline.strokeWidth = 5
+
+    // Add Polyline to a layer on the map control.
+    let linesLayer = MSMapElementLayer()
+    linesLayer.zIndex = 1
+    linesLayer.elements.add(mapPolyline)
+    self.layers.add(linesLayer);
+  }
+
   func onMapLoadingStatus(status:MSMapLoadingStatus){
     if self.onMapLoadingStatusChanged != nil{
       self.onMapLoadingStatusChanged!(["status": status.rawValue]);
     }
   }
-  
+
   func onPinClicked (geoPoint: MSGeopoint, pin: NSMutableSet){
     let lat = geoPoint.position.latitude;
     let long = geoPoint.position.longitude;
