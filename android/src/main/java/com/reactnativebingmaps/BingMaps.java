@@ -3,8 +3,10 @@ package com.reactnativebingmaps;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.PictureDrawable;
 import android.util.Log;
+import java.util.ArrayList;
 import android.widget.FrameLayout;
 
 import com.caverock.androidsvg.SVG;
@@ -15,13 +17,16 @@ import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.events.RCTEventEmitter;
+import com.microsoft.maps.Geopath;
 import com.microsoft.maps.Geopoint;
+import com.microsoft.maps.Geoposition;
 import com.microsoft.maps.MapAnimationKind;
 import com.microsoft.maps.MapElementLayer;
 import com.microsoft.maps.MapElementTappedEventArgs;
 import com.microsoft.maps.MapIcon;
 import com.microsoft.maps.MapImage;
 import com.microsoft.maps.MapLoadingStatus;
+import com.microsoft.maps.MapPolyline;
 import com.microsoft.maps.MapScene;
 import com.microsoft.maps.MapStyleSheet;
 import com.microsoft.maps.MapView;
@@ -41,6 +46,28 @@ public class BingMaps extends MapView {
     } else {
       Log.d("INVALID JSON", "RNBingMapsView: ");
     }
+  }
+
+  public void drawLineOnMap(ReadableArray polylines) {
+    ArrayList<Geoposition> geopoints = new ArrayList<Geoposition>();
+
+    for (int i =0 ; i < polylines.size(); i++) {
+      ReadableArray polyline = polylines.getArray(i);
+      double latitude = polyline.getDouble(0);
+      double longitude = polyline.getDouble(1);
+      geopoints.add(new Geoposition(latitude, longitude));
+    }
+
+    MapPolyline mapPolyline = new MapPolyline();
+    mapPolyline.setPath(new Geopath(geopoints));
+    mapPolyline.setStrokeColor(Color.BLACK);
+    mapPolyline.setStrokeWidth(5);
+
+    // Add Polyline to a layer on the map control.
+    MapElementLayer linesLayer = new MapElementLayer();
+    linesLayer.setZIndex(1.0f);
+    linesLayer.getElements().add(mapPolyline);
+    this.getLayers().add(linesLayer);
   }
 
   public void setPins(ReadableArray pins) {
