@@ -27,6 +27,11 @@ public class BingMapsViewManager extends SimpleViewManager<BingMaps> {
     bingMaps.setPins(pins);
   }
 
+  @ReactProp(name = "polylines")
+  public void drawLineOnMap(BingMaps bingMaps, ReadableArray polylines) {
+    bingMaps.drawLineOnMap(polylines);
+  }
+
   @ReactProp(name = "mapLocation")
   public void setmapLocation(BingMaps bingMaps, ReadableMap location) {
     bingMaps.setMapLocation(location);
