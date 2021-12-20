@@ -12,6 +12,8 @@ import MicrosoftMaps
 class BingMaps: MSMapView {
 
   var mapElementLayer: MSMapElementLayer;
+  var pathLayer: MSMapElementLayer;
+
   @objc var onMapPinClicked: RCTDirectEventBlock?;
   @objc var onMapLoadingStatusChanged: RCTDirectEventBlock?;
 
@@ -89,6 +91,7 @@ class BingMaps: MSMapView {
 
   override init(frame: CGRect) {
     mapElementLayer = MSMapElementLayer();
+    pathLayer = MSMapElementLayer();
     self.compassButtonVisible = true;
     self.tiltButtonVisible=true;
     self.zoomButtonsVisible=true;
@@ -143,14 +146,16 @@ class BingMaps: MSMapView {
 
     let mapPolyline = MSMapPolyline()
     mapPolyline.path = geopath
-    mapPolyline.strokeColor = UIColor.black
+    mapPolyline.strokeColor = UIColor.blue
     mapPolyline.strokeWidth = 5
 
     // Add Polyline to a layer on the map control.
     let linesLayer = MSMapElementLayer()
     linesLayer.zIndex = 1
     linesLayer.elements.add(mapPolyline)
-    self.layers.add(linesLayer);
+    self.layers.remove(pathLayer)
+    pathLayer = linesLayer
+    self.layers.add(linesLayer)
   }
 
   func onMapLoadingStatus(status:MSMapLoadingStatus){
