@@ -37,6 +37,7 @@ public class BingMaps extends MapView {
   MapElementLayer mapElementLayer;
   MapStyleSheet mapStyleSheet;
   BingMaps that;
+  MapElementLayer pathLayer;
 
   public void setMapStyle(String styleJSON){
     mapStyleSheet = MapStyleSheet.fromJson(styleJSON);
@@ -49,6 +50,7 @@ public class BingMaps extends MapView {
   }
 
   public void drawLineOnMap(ReadableArray polylines) {
+
     ArrayList<Geoposition> geopoints = new ArrayList<Geoposition>();
 
     for (int i =0 ; i < polylines.size(); i++) {
@@ -60,13 +62,15 @@ public class BingMaps extends MapView {
 
     MapPolyline mapPolyline = new MapPolyline();
     mapPolyline.setPath(new Geopath(geopoints));
-    mapPolyline.setStrokeColor(Color.BLACK);
+    mapPolyline.setStrokeColor(Color.BLUE);
     mapPolyline.setStrokeWidth(5);
 
     // Add Polyline to a layer on the map control.
     MapElementLayer linesLayer = new MapElementLayer();
     linesLayer.setZIndex(1.0f);
     linesLayer.getElements().add(mapPolyline);
+    this.getLayers().remove(pathLayer);
+    pathLayer = linesLayer;
     this.getLayers().add(linesLayer);
   }
 
